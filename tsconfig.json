@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "es6",
+      "dom",
+      "es2017"
+    ],
+    "types": [
+      "@dcloudio/types"
+    ],
+    "allowJs": false, // 允许编译JavaScript文件
+    "module": "esnext",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "declaration": false, // 生成相应的 .d.ts文件。
+    "sourceMap": false,
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "outDir": "dist/"
+  }
+}
