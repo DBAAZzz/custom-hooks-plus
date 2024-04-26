@@ -2,7 +2,7 @@
   "name": "custom-hooks-plus",
   "version": "1.0.1",
   "description": "适用于uniapp中vue3写法的自定义钩子",
-  "main": "index.ts",
+  "main": "dist/index.js",
   "scripts": {
     "build": "rimraf dist && run-s build-bundle build-types",
     "build-bundle": "node_modules/.bin/rollup -c ./rollup.config.mjs --bundleConfigAsCjs",
