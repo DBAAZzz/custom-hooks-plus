@@ -3,9 +3,9 @@
 /**
  *
  * @param watch 监听的键
- * @param target 监听的目标对象
+ * @param target 传入的store
  */
-export declare function init(watch: WatchType, target: object): void;
+export declare function init(watchObject: WatchType, target?: object): void;
 
 export declare let keyPromise: {
     [key: string]: Promise<any>;
@@ -27,6 +27,7 @@ declare type PromiseMap = {
     [key: string]: {
         status: PromiseStatus;
         resolve: Function;
+        type?: 'pinia' | 'default';
         onUpdate?: (val: any) => boolean;
     };
 };
@@ -40,10 +41,11 @@ declare enum PromiseStatus {
     FULFILLED = "fulfilled"
 }
 
-export declare const proxyData: (target: AnyObject) => AnyObject;
+export declare const proxyData: (target: AnyObject) => InstanceType<ProxyConstructor>;
 
 declare type Watch = {
     key: string;
+    type?: 'pinia' | 'default';
     onUpdate?: (val: any) => boolean;
 };
 

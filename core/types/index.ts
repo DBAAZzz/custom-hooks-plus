@@ -118,6 +118,7 @@ interface ReferrerInfo {
 
 export type Watch = {
   key: string
+  type?: 'pinia' | 'default'
   onUpdate?: (val: any) => boolean
 }
 
