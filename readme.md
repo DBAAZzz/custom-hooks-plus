@@ -3,6 +3,7 @@
 - [custom-hooks-plus](#custom-hooks-plus)
   - [custom-hooks-plus 的作用](#custom-hooks-plus-的作用)
   - [下载和使用](#下载和使用)
+    - [下载](#下载)
     - [proxyData 的作用](#proxydata-的作用)
     - [init 的作用](#init-的作用)
   - [可用的自定义钩子](#可用的自定义钩子)
@@ -31,7 +32,7 @@ onCustomShow(() => {
 
 ## 下载和使用
 
-###　下载
+### 下载
 
 ```bash
 npm i custom-hooks-plus
