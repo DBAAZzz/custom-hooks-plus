@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "rimraf dist && run-s build-bundle build-types",
-    "build-bundle": "node_modules/.bin/rollup -c ./rollup.config.mjs --bundleConfigAsCjs",
+    "build-bundle": "rollup -c ./rollup.config.mjs --bundleConfigAsCjs",
     "build-types": "run-s build-temp build-api-types",
     "build-temp": "rimraf temp && tsc --emitDeclarationOnly --outDir temp -p ./tsconfig.types.json",
     "build-api-types": "api-extractor run && rimraf temp",

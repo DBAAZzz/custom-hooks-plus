@@ -1,5 +1,7 @@
 /// <reference types="@dcloudio/types" />
 
+declare type CustomHook = (cb: (options?: any) => void, watchKey: string[] | string) => void;
+
 /**
  *
  * @param watch 监听的键
@@ -11,17 +13,17 @@ export declare let keyPromise: {
     [key: string]: Promise<any>;
 };
 
-export declare const onCustomCreated: (cb: () => void, watchKey: Array<string> | string) => void;
+export declare const onCustomCreated: CustomHook;
 
-export declare const onCustomLaunch: (cb: (options?: App.LaunchShowOption) => void, watchKey: Array<string> | string) => void;
+export declare const onCustomLaunch: CustomHook;
 
-export declare const onCustomLoad: (cb: (options?: AnyObject) => void, watchKey: Array<string> | string) => void;
+export declare const onCustomLoad: CustomHook;
 
-export declare const onCustomMounted: (cb: () => void, watchKey: Array<string> | string) => void;
+export declare const onCustomMounted: CustomHook;
 
-export declare const onCustomReady: (cb: () => void, watchKey: Array<string> | string) => void;
+export declare const onCustomReady: CustomHook;
 
-export declare const onCustomShow: (cb: () => void, watchKey: Array<string> | string) => void;
+export declare const onCustomShow: CustomHook;
 
 declare type PromiseMap = {
     [key: string]: {

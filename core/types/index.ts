@@ -128,3 +128,7 @@ export enum PromiseStatus {
   /** 已完成 */
   FULFILLED = 'fulfilled'
 }
+
+export type HookFunction = (beforeCb: () => void, asyncCb: (options?: any) => Promise<void>, afterCb: () => void) => void;
+
+export type CustomHook = (cb: (options?: any) => void, watchKey: string[] | string) => void;
