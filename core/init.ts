@@ -1,4 +1,4 @@
-import { PromiseEntry, PromiseMap, PromiseStatus, Watch, WatchConfigMap } from './types'
+import { PromiseEntry, PromiseMap, PromiseStatus, Watch, WatchConfigMap } from '../types'
 
 class CustomHooks {
   private watchConfigs: WatchConfigMap = {}

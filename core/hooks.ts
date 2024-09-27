@@ -1,7 +1,7 @@
 import { customHooks } from './init'
 import { _onLaunch, _onLoad, _onShow, _onReady, _onMounted, _onCreated } from './rewrite'
 import { generateUUIDv4, getSharedKey } from '../utils'
-import { CustomHook, HookFunction, PromiseStatus } from './types'
+import { CustomHook, HookFunction, PromiseStatus } from '../types'
 
 const shared: AnyObject = {}
 
