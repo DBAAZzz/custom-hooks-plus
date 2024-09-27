@@ -1,14 +1,16 @@
-import { CustomHook, HookFunction, PromiseStatus } from './types'
-import { generateUUIDv4, getSharedKey } from '../utils'
-import { keyPromise, promiseMap, watchObj } from './init'
+import { customHooks } from './init'
 import { _onLaunch, _onLoad, _onShow, _onReady, _onMounted, _onCreated } from './rewrite'
+import { generateUUIDv4, getSharedKey } from '../utils'
+import { CustomHook, HookFunction, PromiseStatus } from './types'
 
 const shared: AnyObject = {}
 
-function getWatchKey(watchKey: string | string[], method: string): string[] {
+function getValidWatchKeys(watchKey: string | string[], method: string): string[] {
   const keys = Array.isArray(watchKey) ? watchKey : [watchKey];
+  const watchConfigs = customHooks.getWatchConfigs()
+
   return keys.filter(key => {
-    if (key in watchObj) return true;
+    if (key in watchConfigs) return true;
     console.error(`Method: ${method}, Key: ${key}, Error: "监听的值未注册，该key值不生效，请检查init方法"`);
     return false;
   });
@@ -23,7 +25,7 @@ function resetCallback(watchKey: string[] | string, uuid: string) {
   }
 }
 
-function getHookPromise(watchKey: string[] | string, uuid: string, method: string) {
+function createHookPromise(watchKey: string[] | string, uuid: string, method: string) {
   // 通过 watchKey + uuid 生成唯一 key
   const sharedKey = getSharedKey(watchKey, uuid)
   shared[sharedKey] = {}
@@ -31,13 +33,17 @@ function getHookPromise(watchKey: string[] | string, uuid: string, method: strin
     shared[sharedKey].reject = reject
   })
 
-  const _watchKey = getWatchKey(watchKey, method)
+  // 获取有效的注册过的key
+  const _watchKey = getValidWatchKeys(watchKey, method)
+  const promiseMap = customHooks.getPromiseMap()
+  const watchConfigs = customHooks.getWatchConfigs()
+  const promiseCache = customHooks.getPromiseCache()
   // 根据 key 生成 promise iterable
   const iterable = _watchKey.map((i) => {
-    const promiseKey = watchObj[i].key
+    const promiseKey = watchConfigs[i].key
     return promiseMap[promiseKey].status == PromiseStatus.FULFILLED
       ? Promise.resolve
-      : keyPromise[promiseKey]
+      : promiseCache[promiseKey]
   })
 
   const promise = Promise.race([Promise.all(iterable), shared[sharedKey].promise])
@@ -55,7 +61,7 @@ function createCustomHook(
     () => { },
     async (options) => {
       try {
-        await getHookPromise(watchKey, uuid, methodName)
+        await createHookPromise(watchKey, uuid, methodName)
         cb(options)
       } catch (e) { }
     },

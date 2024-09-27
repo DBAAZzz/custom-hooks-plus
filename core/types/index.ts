@@ -129,6 +129,21 @@ export enum PromiseStatus {
   FULFILLED = 'fulfilled'
 }
 
+export type WatchConfigMap = {
+  [key: string]: Watch
+}
+
+export type PromiseEntry = {
+  status: PromiseStatus
+  resolve: Function,
+  type?: 'pinia' | 'default'
+  onUpdate?: (val: any) => boolean
+}
+
+export type PromiseMap = {
+  [key: string]: PromiseEntry
+}
+
 export type HookFunction = (beforeCb: () => void, asyncCb: (options?: any) => Promise<void>, afterCb: () => void) => void;
 
 export type CustomHook = (cb: (options?: any) => void, watchKey: string[] | string) => void;

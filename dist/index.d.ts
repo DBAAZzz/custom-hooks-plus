@@ -1,17 +1,31 @@
 /// <reference types="@dcloudio/types" />
 
+export declare const createProxy: (target: AnyObject) => InstanceType<ProxyConstructor>;
+
 declare type CustomHook = (cb: (options?: any) => void, watchKey: string[] | string) => void;
 
-/**
- *
- * @param watch 监听的键
- * @param target 传入的store
- */
-export declare function init(watchObject: WatchType, target?: object): void;
+declare class CustomHooks {
+    private watchConfigs;
+    private promiseCache;
+    private promiseMap;
+    private createPendingPromise;
+    updateWatchedValue(key: string, value: any, parentTaget?: object): void;
+    createProxy(target: AnyObject): InstanceType<ProxyConstructor>;
+    init(watchObject: WatchConfigMap, target?: object): void;
+    getPromiseCache(): {
+        [key: string]: Promise<any>;
+    };
+    getPromiseMap(): PromiseMap;
+    getWatchConfigs(): WatchConfigMap;
+}
 
-export declare let keyPromise: {
-    [key: string]: Promise<any>;
-};
+export declare const customHooks: CustomHooks;
+
+/**
+ * @deprecated 即将被弃用，请使用`createProxy`方法
+ * @see 点击查看createProxy方法 {@link createProxy}
+ */
+export declare const init: (watchObject: WatchConfigMap, target?: object) => void;
 
 export declare const onCustomCreated: CustomHook;
 
@@ -25,16 +39,16 @@ export declare const onCustomReady: CustomHook;
 
 export declare const onCustomShow: CustomHook;
 
-declare type PromiseMap = {
-    [key: string]: {
-        status: PromiseStatus;
-        resolve: Function;
-        type?: 'pinia' | 'default';
-        onUpdate?: (val: any) => boolean;
-    };
+declare type PromiseEntry = {
+    status: PromiseStatus;
+    resolve: Function;
+    type?: 'pinia' | 'default';
+    onUpdate?: (val: any) => boolean;
 };
 
-export declare let promiseMap: PromiseMap;
+declare type PromiseMap = {
+    [key: string]: PromiseEntry;
+};
 
 declare enum PromiseStatus {
     /** 加载状态 */
@@ -43,6 +57,10 @@ declare enum PromiseStatus {
     FULFILLED = "fulfilled"
 }
 
+/**
+ * @deprecated 即将被弃用，请使用`createProxy`方法
+ * @see 点击查看createProxy方法 {@link createProxy}
+ */
 export declare const proxyData: (target: AnyObject) => InstanceType<ProxyConstructor>;
 
 declare type Watch = {
@@ -51,9 +69,7 @@ declare type Watch = {
     onUpdate?: (val: any) => boolean;
 };
 
-export declare let watchObj: WatchType;
-
-declare type WatchType = {
+declare type WatchConfigMap = {
     [key: string]: Watch;
 };
 

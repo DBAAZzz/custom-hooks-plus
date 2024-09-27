@@ -1,119 +1,138 @@
-import { PromiseStatus, Watch } from './types/index'
+import { PromiseEntry, PromiseMap, PromiseStatus, Watch, WatchConfigMap } from './types'
 
-type WatchType = {
-  [key: string]: Watch
-}
+class CustomHooks {
+  private watchConfigs: WatchConfigMap = {}
+  private promiseCache: { [key: string]: Promise<any> } = {}
+  private promiseMap: PromiseMap = {}
 
-type PromiseMap = {
-  [key: string]: {
-    status: PromiseStatus
-    resolve: Function,
-    type?: 'pinia' | 'default'
-    onUpdate?: (val: any) => boolean
-  }
-}
-
-export let watchObj: WatchType = {}
-export let keyPromise: {
-  [key: string]: Promise<any>
-} = {}
-export let promiseMap: PromiseMap = {}
-
-function pendingPromise(watch: Watch) {
-  return new Promise((resolve, reject) => {
-    promiseMap[watch.key] = {
-      status: PromiseStatus.PEDDING,
-      resolve,
-      onUpdate: watch.onUpdate,
-    }
-  })
-}
-
-function watch(key: string, value: any, parentTaget?: object) {
-  let truthKey = parentTaget ? `${parentTaget}.${key}` : key
-  let execPromise = [truthKey]
-
-  if (typeof value === 'object' && value !== null) {
-    Object.keys(value).forEach((k) => {
-      execPromise.push(`${truthKey}.${k}`)
+  private createPendingPromise(watch: Watch) {
+    return new Promise((resolve, reject) => {
+      this.promiseMap[watch.key] = {
+        status: PromiseStatus.PEDDING,
+        resolve,
+        onUpdate: watch.onUpdate,
+      }
     })
   }
 
-  execPromise.forEach((i) => {
-    if (!promiseMap[i]) return
-    if (promiseMap[i].onUpdate) {
-      let result = promiseMap[i].onUpdate?.(value)
-      if (result && promiseMap[i].status == PromiseStatus.PEDDING) {
-        // 满足条件使指定key的promise为fulfilled
-        promiseMap[i].status = PromiseStatus.FULFILLED
-        promiseMap[i].resolve(value)
-      } else if (!result && promiseMap[i].status == PromiseStatus.FULFILLED) {
-        // 不满足条件重置promise的状态为pedding
-        keyPromise[i] = pendingPromise({
-          key: i,
-          onUpdate: promiseMap[i].onUpdate
-        })
-      }
-    } else if (value && promiseMap[i].status == PromiseStatus.PEDDING) {
-      // 满足条件使指定key的promise为fulfilled
-      promiseMap[i].status = PromiseStatus.FULFILLED
-      promiseMap[i].resolve(value)
-    } else if (!value && promiseMap[i].status == PromiseStatus.FULFILLED) {
-      // 不满足条件重置promise的状态为pedding
-      keyPromise[i] = pendingPromise({
-        key: i,
-        onUpdate: promiseMap[i].onUpdate
+  updateWatchedValue(key: string, value: any, parentTaget?: object) {
+    let truthKey = parentTaget ? `${parentTaget}.${key}` : key
+    let execPromise = [truthKey]
+
+    if (typeof value === 'object' && value !== null) {
+      Object.keys(value).forEach((k) => {
+        execPromise.push(`${truthKey}.${k}`)
       })
     }
-  })
-}
 
-export const proxyData = (target: AnyObject): InstanceType<ProxyConstructor> => {
-  let proxy = new Proxy(target, {
-    get: (obj, prop: string, receiver) => {
-      const value = Reflect.get(target, prop, receiver)
-      // 深度检测
-      if (typeof value === 'object' && value !== null) {
-        return proxyData({
-          _parentTarget: prop,
-          ...value
+    execPromise.forEach((i) => {
+      if (!this.promiseMap[i]) return
+      if (this.promiseMap[i].onUpdate) {
+        let result = this.promiseMap[i].onUpdate?.(value)
+        if (result && this.promiseMap[i].status == PromiseStatus.PEDDING) {
+          // 满足条件使指定key的promise为fulfilled
+          this.promiseMap[i].status = PromiseStatus.FULFILLED
+          this.promiseMap[i].resolve(value)
+        } else if (!result && this.promiseMap[i].status == PromiseStatus.FULFILLED) {
+          // 不满足条件重置promise的状态为pedding
+          this.promiseCache[i] = this.createPendingPromise({
+            key: i,
+            onUpdate: this.promiseMap[i].onUpdate
+          })
+        }
+      } else if (value && this.promiseMap[i].status == PromiseStatus.PEDDING) {
+        // 满足条件使指定key的promise为fulfilled
+        this.promiseMap[i].status = PromiseStatus.FULFILLED
+        this.promiseMap[i].resolve(value)
+      } else if (!value && this.promiseMap[i].status == PromiseStatus.FULFILLED) {
+        // 不满足条件重置promise的状态为pedding
+        this.promiseCache[i] = this.createPendingPromise({
+          key: i,
+          onUpdate: this.promiseMap[i].onUpdate
         })
       }
-      watch(prop, value, obj._parentTarget ? obj._parentTarget : null)
-      return value
-    },
-    set: (obj, prop: string, value) => {
-      obj[prop] = value
-      watch(prop, value, obj._parentTarget ? obj._parentTarget : null)
-      return true
-    }
-  })
-  return proxy
-}
-
-/**
- *
- * @param watch 监听的键
- * @param target 传入的store
- */
-export function init(watchObject: WatchType, target?: object) {
-  watchObj = Object.assign({}, watchObject)
-  let watchItem = Object.keys(watchObject).map((i) => {
-    return watchObject[i]
-  })
-
-  for (let w of watchItem) {
-    w.key = w.type == 'pinia' ? `pinia-${w.key}` : w.key
-    keyPromise[w.key] = pendingPromise(w)
-  }
-
-  if (target) {
-    // todo 可以传入多个 store，通过 storeId 判断属于哪个 store
-    // @ts-ignore
-    target.$subscribe((store) => {
-      let key = store.events.key,
-        value = store.events.newValue
-      watch(`pinia-${key}`, value)
     })
   }
+
+  createProxy<T extends AnyObject>(target: T): T {
+    let proxy = new Proxy(target, {
+      get: (obj, prop: string, receiver) => {
+        const value = Reflect.get(target, prop, receiver)
+        // 深度检测
+        if (typeof value === 'object' && value !== null) {
+          return this.createProxy({
+            _parentTarget: prop,
+            ...value
+          })
+        }
+        this.updateWatchedValue(prop, value, obj._parentTarget ? obj._parentTarget : null)
+        return value
+      },
+      set: (obj, prop: string, value) => {
+        // @ts-ignore
+        obj[prop] = value
+        this.updateWatchedValue(prop, value, obj._parentTarget ? obj._parentTarget : null)
+        return true
+      }
+    })
+    return proxy
+  }
+
+  init(watchObject: WatchConfigMap, target?: object) {
+    this.watchConfigs = Object.assign({}, watchObject)
+    let watchItem = Object.keys(watchObject).map((i) => {
+      return watchObject[i]
+    })
+
+    for (let w of watchItem) {
+      w.key = w.type == 'pinia' ? `pinia-${w.key}` : w.key
+      this.promiseCache[w.key] = this.createPendingPromise(w)
+    }
+
+    if (target) {
+      // todo 可以传入多个 store，通过 storeId 判断属于哪个 store
+      // @ts-ignore
+      target.$subscribe((store) => {
+        let key = store.events.key,
+          value = store.events.newValue
+        this.updateWatchedValue(`pinia-${key}`, value)
+      })
+    }
+  }
+
+  getPromiseCache() {
+    return this.promiseCache
+  }
+
+  getPromiseMap() {
+    return this.promiseMap
+  }
+
+  getWatchConfigs() {
+    return this.watchConfigs
+  }
+}
+
+export const customHooks = new CustomHooks()
+
+/**
+ * 
+ * @param watchObject 监听的键
+ * @param target 传入的store
+ * @returns 
+ */
+/**
+ * @deprecated 即将被弃用，请使用`createProxy`方法
+ * @see 点击查看createProxy方法 {@link createProxy}
+ */
+export const init = (watchObject: WatchConfigMap, target?: object) => customHooks.init(watchObject, target)
+// AnyObject
+export const createProxy = <T extends AnyObject>(target: T): T => customHooks.createProxy(target)
+
+/**
+ * @deprecated 即将被弃用，请使用`createProxy`方法
+ * @see 点击查看createProxy方法 {@link createProxy}
+ */
+export const proxyData = <T extends AnyObject>(target: T): T => {
+  return createProxy(target)
 }
