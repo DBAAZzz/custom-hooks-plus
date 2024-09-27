@@ -78,7 +78,7 @@ class CustomHooks {
     return proxy
   }
 
-  init(watchObject: WatchConfigMap, target?: object) {
+  init(watchObject: WatchConfigMap, target?: object): void {
     this.watchConfigs = Object.assign({}, watchObject)
     let watchItem = Object.keys(watchObject).map((i) => {
       return watchObject[i]
@@ -121,12 +121,10 @@ export const customHooks = new CustomHooks()
  * @param target 传入的store
  * @returns 
  */
-/**
- * @deprecated 即将被弃用，请使用`createProxy`方法
- * @see 点击查看createProxy方法 {@link createProxy}
- */
-export const init = (watchObject: WatchConfigMap, target?: object) => customHooks.init(watchObject, target)
-// AnyObject
+export function init(watchObject: WatchConfigMap, target?: object) {
+  customHooks.init(watchObject, target)
+}
+
 export const createProxy = <T extends AnyObject>(target: T): T => customHooks.createProxy(target)
 
 /**
