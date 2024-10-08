@@ -124,7 +124,7 @@ export type Watch = {
 
 export enum PromiseStatus {
   /** 加载状态 */
-  PEDDING = 'pedding',
+  PENDING = 'pending',
   /** 已完成 */
   FULFILLED = 'fulfilled'
 }

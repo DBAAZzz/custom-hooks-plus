@@ -8,7 +8,7 @@ class CustomHooks {
   private createPendingPromise(watch: Watch) {
     return new Promise((resolve, reject) => {
       this.promiseMap[watch.key] = {
-        status: PromiseStatus.PEDDING,
+        status: PromiseStatus.PENDING,
         resolve,
         onUpdate: watch.onUpdate,
       }
@@ -29,7 +29,7 @@ class CustomHooks {
       if (!this.promiseMap[i]) return
       if (this.promiseMap[i].onUpdate) {
         let result = this.promiseMap[i].onUpdate?.(value)
-        if (result && this.promiseMap[i].status == PromiseStatus.PEDDING) {
+        if (result && this.promiseMap[i].status == PromiseStatus.PENDING) {
           // 满足条件使指定key的promise为fulfilled
           this.promiseMap[i].status = PromiseStatus.FULFILLED
           this.promiseMap[i].resolve(value)
@@ -40,7 +40,7 @@ class CustomHooks {
             onUpdate: this.promiseMap[i].onUpdate
           })
         }
-      } else if (value && this.promiseMap[i].status == PromiseStatus.PEDDING) {
+      } else if (value && this.promiseMap[i].status == PromiseStatus.PENDING) {
         // 满足条件使指定key的promise为fulfilled
         this.promiseMap[i].status = PromiseStatus.FULFILLED
         this.promiseMap[i].resolve(value)
