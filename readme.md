@@ -4,7 +4,7 @@
   - [custom-hooks-plus 的作用](#custom-hooks-plus-的作用)
   - [下载和使用](#下载和使用)
     - [下载](#下载)
-    - [proxyData 的作用](#proxydata-的作用)
+    - [createProxy 的作用](#createproxy-的作用)
     - [init 的作用](#init-的作用)
   - [可用的自定义钩子](#可用的自定义钩子)
 
@@ -26,7 +26,7 @@ onCustomShow(() => {
 
 `custom-hooks-plus` 主要导出了以下几种方法：
 
-- proxyData
+- createProxy
 - init
 - 一系列自定义钩子
 
@@ -38,20 +38,20 @@ onCustomShow(() => {
 npm i custom-hooks-plus
 ```
 
-### proxyData 的作用
+### createProxy 的作用
 
-proxyData 的作用就是监听传入对象的变化。
+createProxy 的作用就是监听传入对象的变化。
 
 ```js
 // global.ts 文件
-import { proxyData } from 'custom-hooks-plus'
+import { createProxy } from 'custom-hooks-plus'
 
 interface GlobalData {
   token: string
   userInfo: number
 }
 
-export const globalData = proxyData({
+export const globalData = createProxy({
   token: '',
   userInfo: {
     name: ''
@@ -72,16 +72,33 @@ export function get<K extends keyof GlobalData>(key: K): GlobalData[K] {
 init 方法的定义为：
 
 ```ts
-export declare function init(
-  watchObject: {
-    [key: string]: {
-      key: string; // 需要监听的key，需要在proxyData中传入对象里定义，否则会不生效
-      type?: 'pinia' | 'default'; // 默认为 default，如果target传入了pinia的store实例，需要监听store的key，则type类型传 pinia
-      onUpdate?: (val: any) => boolean; // 更新条件
-    };
-  },
-  target?: object // 传入 pinia 的 store 实例
-): void;
+declare type PiniaWatchConfig = {
+  key: string;
+  type: 'pinia';
+  store: any;
+  onUpdate?: (val: any) => boolean;
+};
+
+declare type PromiseEntry = {
+  status: PromiseStatus;
+  resolve: Function;
+  type?: 'pinia' | 'default';
+  onUpdate?: (val: any) => boolean;
+};
+
+declare type WatchConfig = PiniaWatchConfig | DefaultWatchConfig;
+
+declare type WatchConfigCollection = {
+  [key: string]: WatchConfig;
+};
+
+/**
+ *
+ * @param watchObject 监听的键
+ * @param target 传入的store
+ * @returns
+ */
+export declare function init(watchObject: WatchConfigCollection): void;
 ```
 
 具体方法为：
@@ -91,30 +108,28 @@ export declare function init(
 import { init } from 'custom-hooks-plus';
 import { useCounterStore } from '@/store/index';
 
-init(
-  {
-    Login: {
-      key: 'token', // 监听global文件中globalData的token的变化
-      onUpdate: (val) => {
-        return !!val;
-      },
-    },
-    UserInfo: {
-      key: 'userInfo', // 监听global文件中globalData的userinfo的变化
-    },
-    Name: {
-      key: 'userInfo.name', // 监听global文件中globalData的userinfo.name的变化
-    },
-    Count: {
-      key: 'counter', // 监听 useCounterStore 中 state 的 counter的变化
-      type: 'pinia',
-      onUpdate: (val) => {
-        return val === 2;
-      }, // 更新条件为 val 等于 2
+init({
+  Login: {
+    key: 'token', // 监听global文件中globalData的token的变化
+    onUpdate: (val) => {
+      return !!val;
     },
   },
-  useCounterStore()
-);
+  UserInfo: {
+    key: 'userInfo', // 监听global文件中globalData的userinfo的变化
+  },
+  Name: {
+    key: 'userInfo.name', // 监听global文件中globalData的userinfo.name的变化
+  },
+  Count: {
+    key: 'counter', // 监听 useCounterStore 中 state 的 counter的变化
+    type: 'pinia',
+    store: useCounterStore(), // type传入pinia类型需要传入store实例
+    onUpdate: (val) => {
+      return val === 2;
+    }, // 更新条件为 val 等于 2
+  },
+});
 ```
 
 使用自定义生命周期钩子

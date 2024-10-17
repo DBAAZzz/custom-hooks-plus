@@ -116,11 +116,20 @@ interface ReferrerInfo {
   extraData?: any;
 }
 
-export type Watch = {
+type PiniaWatchConfig = {
   key: string
-  type?: 'pinia' | 'default'
+  type: 'pinia'
+  store: any // todo 如何使用更具体的 store 类型
   onUpdate?: (val: any) => boolean
 }
+
+type DefaultWatchConfig = {
+  key: string
+  type?: 'default'
+  onUpdate?: (val: any) => boolean
+}
+
+export type WatchConfig = PiniaWatchConfig | DefaultWatchConfig
 
 export enum PromiseStatus {
   /** 加载状态 */
@@ -129,8 +138,8 @@ export enum PromiseStatus {
   FULFILLED = 'fulfilled'
 }
 
-export type WatchConfigMap = {
-  [key: string]: Watch
+export type WatchConfigCollection = {
+  [key: string]: WatchConfig
 }
 
 export type PromiseEntry = {

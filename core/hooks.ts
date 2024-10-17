@@ -11,7 +11,7 @@ function getValidWatchKeys(watchKey: string | string[], method: string): string[
 
   return keys.filter(key => {
     if (key in watchConfigs) return true;
-    console.error(`Method: ${method}, Key: ${key}, Error: "监听的值未注册，该key值不生效，请检查init方法"`);
+    console.error(`Method: ${method}, Error: 监听的值【${key}】未注册！！！请检查init方法`);
     return false;
   });
 }
@@ -38,6 +38,12 @@ function createHookPromise(watchKey: string[] | string, uuid: string, method: st
   const promiseMap = customHooks.getPromiseMap()
   const watchConfigs = customHooks.getWatchConfigs()
   const promiseCache = customHooks.getPromiseCache()
+
+  // 如果监听的有效值为空，则返回一个失败的 promise
+  if (_watchKey.length == 0) {
+    return Promise.reject()
+  }
+
   // 根据 key 生成 promise iterable
   const iterable = _watchKey.map((i) => {
     const promiseKey = watchConfigs[i].key

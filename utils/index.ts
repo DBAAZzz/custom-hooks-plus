@@ -16,3 +16,7 @@ export function getSharedKey(watchKey: string[] | string, uuid: string): string 
   }
   return watchKey.join('-') + `-${uuid}`
 }
+
+export function generatePiniaKey(key: string, store: any): string {
+  return `pinia-${store.$id}-${key}`
+}

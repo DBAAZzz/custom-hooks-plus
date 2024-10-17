@@ -1,11 +1,12 @@
-import { PromiseEntry, PromiseMap, PromiseStatus, Watch, WatchConfigMap } from '../types'
+import { PromiseMap, PromiseStatus, WatchConfig, WatchConfigCollection } from '../types'
+import { generatePiniaKey } from '../utils'
 
 class CustomHooks {
-  private watchConfigs: WatchConfigMap = {}
+  private watchConfigs: WatchConfigCollection = {}
   private promiseCache: { [key: string]: Promise<any> } = {}
   private promiseMap: PromiseMap = {}
 
-  private createPendingPromise(watch: Watch) {
+  private createPendingPromise(watch: WatchConfig) {
     return new Promise((resolve, reject) => {
       this.promiseMap[watch.key] = {
         status: PromiseStatus.PENDING,
@@ -78,26 +79,26 @@ class CustomHooks {
     return proxy
   }
 
-  init(watchObject: WatchConfigMap, target?: object): void {
+  init(watchObject: WatchConfigCollection): void {
     this.watchConfigs = Object.assign({}, watchObject)
-    let watchItem = Object.keys(watchObject).map((i) => {
-      return watchObject[i]
-    })
-
-    for (let w of watchItem) {
-      w.key = w.type == 'pinia' ? `pinia-${w.key}` : w.key
-      this.promiseCache[w.key] = this.createPendingPromise(w)
-    }
-
-    if (target) {
-      // todo 可以传入多个 store，通过 storeId 判断属于哪个 store
-      // @ts-ignore
-      target.$subscribe((store) => {
-        let key = store.events.key,
-          value = store.events.newValue
-        this.updateWatchedValue(`pinia-${key}`, value)
-      })
-    }
+    const watchItems = Object.values(this.watchConfigs)
+    watchItems.forEach(w => {
+      if (w.type === 'pinia') {
+        const key = generatePiniaKey(w.key, w.store)
+        w.key = key
+        // @ts-ignore
+        w.store.$subscribe((store) => {
+          const { newValue } = store.events
+          this.updateWatchedValue(key, newValue)
+        })
+      }
+      const { key, onUpdate } = w;
+      if (key) {
+        this.promiseCache[key] = this.createPendingPromise({ key, onUpdate })
+      } else {
+        console.error('init 方法无效的监听配置：缺少 key 属性')
+      }
+    });
   }
 
   getPromiseCache() {
@@ -121,8 +122,8 @@ export const customHooks = new CustomHooks()
  * @param target 传入的store
  * @returns 
  */
-export function init(watchObject: WatchConfigMap, target?: object) {
-  customHooks.init(watchObject, target)
+export function init(watchObject: WatchConfigCollection) {
+  customHooks.init(watchObject)
 }
 
 export const createProxy = <T extends AnyObject>(target: T): T => customHooks.createProxy(target)
