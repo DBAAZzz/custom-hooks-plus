@@ -1,5 +1,5 @@
 import { PromiseMap, PromiseStatus, WatchConfig, WatchConfigCollection } from '../types'
-import { generatePiniaKey } from '../utils'
+import { generatePiniaKey, watchs } from '../utils'
 
 class CustomHooks {
   private watchConfigs: WatchConfigCollection = {}
@@ -11,7 +11,7 @@ class CustomHooks {
       this.promiseMap[watch.key] = {
         status: PromiseStatus.PENDING,
         resolve,
-        onUpdate: watch.onUpdate,
+        onUpdate: watch.onUpdate
       }
     })
   }
@@ -82,23 +82,22 @@ class CustomHooks {
   init(watchObject: WatchConfigCollection): void {
     this.watchConfigs = Object.assign({}, watchObject)
     const watchItems = Object.values(this.watchConfigs)
-    watchItems.forEach(w => {
+    watchItems.forEach((w) => {
       if (w.type === 'pinia') {
+        const piniaOriginalKey = w.key
         const key = generatePiniaKey(w.key, w.store)
         w.key = key
-        // @ts-ignore
-        w.store.$subscribe((store) => {
-          const { newValue } = store.events
+        watchs(w.store, piniaOriginalKey, (newValue: any) => {
           this.updateWatchedValue(key, newValue)
         })
       }
-      const { key, onUpdate } = w;
+      const { key, onUpdate } = w
       if (key) {
         this.promiseCache[key] = this.createPendingPromise({ key, onUpdate })
       } else {
         console.error('init 方法无效的监听配置：缺少 key 属性')
       }
-    });
+    })
   }
 
   getPromiseCache() {
@@ -117,10 +116,10 @@ class CustomHooks {
 export const customHooks = new CustomHooks()
 
 /**
- * 
+ *
  * @param watchObject 监听的键
  * @param target 传入的store
- * @returns 
+ * @returns
  */
 export function init(watchObject: WatchConfigCollection) {
   customHooks.init(watchObject)
@@ -135,3 +134,4 @@ export const createProxy = <T extends AnyObject>(target: T): T => customHooks.cr
 export const proxyData = <T extends AnyObject>(target: T): T => {
   return createProxy(target)
 }
+

@@ -1,6 +1,7 @@
+import { watch } from 'vue'
 /**
  * 生成唯一uuid
- * @returns 
+ * @returns
  */
 export function generateUUIDv4() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -19,4 +20,14 @@ export function getSharedKey(watchKey: string[] | string, uuid: string): string 
 
 export function generatePiniaKey(key: string, store: any): string {
   return `pinia-${store.$id}-${key}`
+}
+
+export function watchs(store: any, key: string, callback: Function) {
+  return watch(
+    () => store.$state[key],
+    (newVal) => {
+      callback(newVal)
+    },
+    { immediate: false }
+  )
 }
