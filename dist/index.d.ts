@@ -1,5 +1,3 @@
-/// <reference types="@dcloudio/types" />
-
 export declare const createProxy: <T extends AnyObject>(target: T) => T;
 
 declare type CustomHook = (cb: (options?: any) => void, watchKey: string[] | string) => void;
