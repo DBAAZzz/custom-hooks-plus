@@ -1,13 +1,7 @@
 {
   "compilerOptions": {
-    "lib": [
-      "es6",
-      "dom",
-      "es2017"
-    ],
-    "types": [
-      "@dcloudio/types"
-    ],
+    "lib": ["es6", "dom", "es2017"],
+    "types": ["@dcloudio/types"],
     "allowJs": false, // 允许编译JavaScript文件
     "module": "esnext",
     "esModuleInterop": true,
@@ -18,5 +12,6 @@
     "skipLibCheck": true,
     "moduleResolution": "node",
     "outDir": "dist/"
-  }
+  },
+  "exclude": ["**/*.test.ts", "**/*.spec.ts", "**/test/**", "vite.config.ts"]
 }

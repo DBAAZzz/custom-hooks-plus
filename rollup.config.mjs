@@ -11,6 +11,9 @@ module.exports = [
       dir: './dist',
       format: 'esm',
     },
+    external: [
+      /test/
+    ],
     plugins: [
       commonjs(),
       babel({

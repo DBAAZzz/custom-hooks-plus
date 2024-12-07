@@ -14,6 +14,7 @@ describe('use customHooks', () => {
     await wrapper.vm.$nextTick()
 
     setTimeout(() => {
+      // @ts-ignore
       expect(wrapper.vm.customMountedLogin).toBe(true)
     }, 0);
   })
@@ -23,6 +24,7 @@ describe('use customHooks', () => {
     await wrapper.vm.$nextTick()
 
     setTimeout(() => {
+      // @ts-ignore
       const { customMountedLoginName } = wrapper.vm
       expect(customMountedLoginName).toBe(false)
     }, 0);
@@ -31,10 +33,12 @@ describe('use customHooks', () => {
   it('pinia的name和token都发生变化，执行mounted', async () => {
     const wrapper = mount(Index)
     await wrapper.vm.$nextTick()
+    // @ts-ignore
     expect(wrapper.vm.customMountedLoginName).toBe(false)
 
     await wrapper.find('#button').trigger('click')
     setTimeout(() => {
+      // @ts-ignore
       expect(wrapper.vm.customMountedLoginName).toBe(true)
     }, 0);
   })
@@ -42,9 +46,11 @@ describe('use customHooks', () => {
   it('global的token发生变化，执行mounted', async () => {
     const wrapper = mount(Index)
     await wrapper.vm.$nextTick()
+    // @ts-ignore
     expect(wrapper.vm.customMountedGlobalLogin).toBe(false)
     await wrapper.find('#button2').trigger('click')
     setTimeout(() => {
+      // @ts-ignore
       expect(wrapper.vm.customMountedGlobalLogin).toBe(true)
     }, 0);
   })
@@ -52,9 +58,11 @@ describe('use customHooks', () => {
   it('global的user对象发生变化，执行mounted', async () => {
     const wrapper = mount(Index)
     await wrapper.vm.$nextTick()
+    // @ts-ignore
     expect(wrapper.vm.customMountedGlobalUserInfo).toBe(false)
     await wrapper.find('#button3').trigger('click')
     setTimeout(() => {
+      // @ts-ignore
       expect(wrapper.vm.customMountedGlobalUserInfo).toBe(true)
     }, 0);
   })
@@ -62,14 +70,16 @@ describe('use customHooks', () => {
   it('global的user对象的key值发生变化，执行mounted', async () => {
     const wrapper = mount(Index)
     await wrapper.vm.$nextTick()
-    
+    // @ts-ignore
     expect(wrapper.vm.customMountedGlobalUserInfo).toBe(false)
     await wrapper.find('#button3').trigger('click')
-
+    // @ts-ignore
     setTimeout(async () => {
+      // @ts-ignore
       expect(wrapper.vm.customMountedGlobalUserInfoA).toBe(false)
       await wrapper.find('#button4').trigger('click')
       setTimeout(() => {
+        // @ts-ignore
         expect(wrapper.vm.customMountedGlobalUserInfoA).toBe(true)
       }, 0);
     }, 0);
