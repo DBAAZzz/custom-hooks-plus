@@ -70,10 +70,9 @@ class CustomHooks {
         return value
       },
       set: (obj, prop: string, value) => {
-        // @ts-ignore
-        obj[prop] = value
+        const result = Reflect.set(target, prop, value)
         this.updateWatchedValue(prop, value, obj._parentTarget ? obj._parentTarget : null)
-        return true
+        return result
       }
     })
     return proxy
