@@ -7,6 +7,7 @@
     - [createProxy 的作用](#createproxy-的作用)
     - [init 的作用](#init-的作用)
   - [可用的自定义钩子](#可用的自定义钩子)
+  - [联系作者](#联系作者)
 
 ## custom-hooks-plus 的作用
 
@@ -167,3 +168,8 @@ onCustomShow(() => {
 | onCustomShow     | 对应 uniapp 的 onShow      |
 | onCustomMounted  | 对应 uniapp 的 onMounted   |
 | onCustomReady    | 对应 uniapp 的 onReady     |
+
+
+## 联系作者
+
+![图 0](images/2024-12-20%2000-35-25%2032efc6bee36652fea47fe4dc284d68eaaa9b9cab09b0d497e28ea2e1adb585e4.png)  
