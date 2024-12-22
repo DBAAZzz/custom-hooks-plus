@@ -5,6 +5,9 @@ export const useUserStore = defineStore('user', {
     return {
       token: '',
       name: '',
+      userInfo: {
+        year: 1997
+      }
     }
   },
   actions: {
@@ -13,6 +16,14 @@ export const useUserStore = defineStore('user', {
     },
     setName(name: string) {
       this.name = name
+    },
+    setUserInfo(userInfo: {
+      year: number
+    }) {
+      this.userInfo = userInfo
+    },
+    setYear(year: number) {
+      this.userInfo.year = year
     }
   },
 })

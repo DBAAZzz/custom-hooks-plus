@@ -149,9 +149,7 @@ export type PromiseEntry = {
   onUpdate?: (val: any) => boolean
 }
 
-export type PromiseMap = {
-  [key: string]: PromiseEntry
-}
+export type PromiseMapValue = PromiseEntry & Partial<WatchConfig>
 
 export type HookFunction = (beforeCb: () => void, asyncCb: (options?: any) => Promise<void>, afterCb: () => void) => void;
 

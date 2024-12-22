@@ -1,77 +1,90 @@
-import { PromiseMap, PromiseStatus, WatchConfig, WatchConfigCollection } from '../types'
-import { generatePiniaKey, watchs } from '../utils'
+import { PromiseMapValue, PromiseStatus, WatchConfig, WatchConfigCollection } from '../types'
+import { findCommonSubset, flattenObject, generatePiniaKey, getValueByPath, restoreKey, watchs, } from '../utils'
 
 class CustomHooks {
   private watchConfigs: WatchConfigCollection = {}
-  private promiseCache: { [key: string]: Promise<any> } = {}
-  private promiseMap: PromiseMap = {}
+  private promiseCache = new Map<string, Promise<any>>()
+  private promiseMap = new Map<string, PromiseMapValue>()
+  private proxyTarget: Record<string, any> = {}
 
   private createPendingPromise(watch: WatchConfig) {
     return new Promise((resolve, reject) => {
-      this.promiseMap[watch.key] = {
+      this.promiseMap.set(watch.key, {
         status: PromiseStatus.PENDING,
         resolve,
+        type: watch.type,
         onUpdate: watch.onUpdate
-      }
+      })
     })
   }
 
-  updateWatchedValue(key: string, value: any, parentTaget?: object) {
-    let truthKey = parentTaget ? `${parentTaget}.${key}` : key
-    let execPromise = [truthKey]
+  private track(key: string, value: any) {
+
+    let valueType = 'base'
+    const initKeys = Array.from(this.promiseMap.keys())
+    const flattenKeys = [key]
 
     if (typeof value === 'object' && value !== null) {
-      Object.keys(value).forEach((k) => {
-        execPromise.push(`${truthKey}.${k}`)
-      })
+      valueType = 'object'
+      // 对传入的对象做扁平化处理
+      flattenKeys.push(...flattenObject(value, key))
     }
 
-    execPromise.forEach((i) => {
-      if (!this.promiseMap[i]) return
-      if (this.promiseMap[i].onUpdate) {
-        let result = this.promiseMap[i].onUpdate?.(value)
-        if (result && this.promiseMap[i].status == PromiseStatus.PENDING) {
-          // 满足条件使指定key的promise为fulfilled
-          this.promiseMap[i].status = PromiseStatus.FULFILLED
-          this.promiseMap[i].resolve(value)
-        } else if (!result && this.promiseMap[i].status == PromiseStatus.FULFILLED) {
-          // 不满足条件重置promise的状态为pedding
-          this.promiseCache[i] = this.createPendingPromise({
-            key: i,
-            onUpdate: this.promiseMap[i].onUpdate
-          })
+    const watchedKeys = findCommonSubset(initKeys, flattenKeys)
+
+    watchedKeys.forEach((watchKey) => {
+      if (!this.promiseMap.get(watchKey)) return
+
+      const promiseItem = this.promiseMap.get(watchKey)!
+
+      let assignValue = value
+      if (valueType == 'object') {
+        const pathKey = restoreKey({ ...promiseItem, key: watchKey })
+        assignValue = getValueByPath(value, pathKey, value)
+      }
+
+      // 处理带有自定义更新条件的情况
+      if (promiseItem.onUpdate) {
+        const shouldFulfill = promiseItem.onUpdate?.(assignValue)
+        if (shouldFulfill && promiseItem.status == PromiseStatus.PENDING) {
+          promiseItem.status = PromiseStatus.FULFILLED
+          promiseItem.resolve(assignValue)
+        } else if (!shouldFulfill && promiseItem.status == PromiseStatus.FULFILLED) {
+          this.promiseCache.set(watchKey, this.createPendingPromise({
+            key: watchKey,
+            onUpdate: promiseItem.onUpdate
+          }))
         }
-      } else if (value && this.promiseMap[i].status == PromiseStatus.PENDING) {
-        // 满足条件使指定key的promise为fulfilled
-        this.promiseMap[i].status = PromiseStatus.FULFILLED
-        this.promiseMap[i].resolve(value)
-      } else if (!value && this.promiseMap[i].status == PromiseStatus.FULFILLED) {
-        // 不满足条件重置promise的状态为pedding
-        this.promiseCache[i] = this.createPendingPromise({
-          key: i,
-          onUpdate: this.promiseMap[i].onUpdate
-        })
+        return
+      }
+
+      //  处理简单值判断的情况
+      if (assignValue && promiseItem.status == PromiseStatus.PENDING) {
+        promiseItem.status = PromiseStatus.FULFILLED
+        promiseItem.resolve(assignValue)
+      } else if (!assignValue && promiseItem.status == PromiseStatus.FULFILLED) {
+        this.promiseCache.set(watchKey, this.createPendingPromise({
+          key: watchKey,
+          onUpdate: promiseItem.onUpdate
+        }))
       }
     })
   }
 
   createProxy<T extends AnyObject>(target: T): T {
-    let proxy = new Proxy(target, {
+    this.proxyTarget = target
+
+    const proxy = new Proxy(target, {
       get: (obj, prop: string, receiver) => {
-        const value = Reflect.get(target, prop, receiver)
-        // 深度检测
-        if (typeof value === 'object' && value !== null) {
-          return this.createProxy({
-            _parentTarget: prop,
-            ...value
-          })
-        }
-        this.updateWatchedValue(prop, value, obj._parentTarget ? obj._parentTarget : null)
+        const value = Reflect.get(obj, prop, receiver)
         return value
       },
-      set: (obj, prop: string, value) => {
-        const result = Reflect.set(target, prop, value)
-        this.updateWatchedValue(prop, value, obj._parentTarget ? obj._parentTarget : null)
+      set: (obj, prop: string, newValue) => {
+        const oldValue = target[prop]
+        if (oldValue === newValue) return true
+        
+        const result = Reflect.set(obj, prop, newValue)
+        this.track(prop, newValue)
         return result
       }
     })
@@ -82,17 +95,21 @@ class CustomHooks {
     this.watchConfigs = Object.assign({}, watchObject)
     const watchItems = Object.values(this.watchConfigs)
     watchItems.forEach((w) => {
+      const originalKey = w.key
+      const defaultVal = getValueByPath(w.type == 'pinia' ? w.store.$state : this.proxyTarget, originalKey)
+
       if (w.type === 'pinia') {
-        const piniaOriginalKey = w.key
         const key = generatePiniaKey(w.key, w.store)
         w.key = key
-        watchs(w.store, piniaOriginalKey, (newValue: any) => {
-          this.updateWatchedValue(key, newValue)
+        watchs(w.store, originalKey, (newValue: any) => {
+          this.track(key, newValue)
         })
       }
-      const { key, onUpdate } = w
-      if (key) {
-        this.promiseCache[key] = this.createPendingPromise({ key, onUpdate })
+
+      if (w.key) {
+        this.promiseCache.set(w.key, this.createPendingPromise(w))
+        // init 时执行一次 track
+        this.track(w.key, defaultVal)
       } else {
         console.error('init 方法无效的监听配置：缺少 key 属性')
       }

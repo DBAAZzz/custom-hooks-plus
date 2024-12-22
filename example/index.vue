@@ -5,6 +5,8 @@
     <button id="button2" @click="setToken">修改token</button>
     <button id="button3" @click="setUserInfo">修改用户信息</button>
     <button id="button4" @click="setUserInfoKey">修改用户信息</button>
+    <button id="button5" @click="setPiniaYear">修改用户信息</button>
+
   </div>
 </template>
 
@@ -25,19 +27,35 @@ init({
     type: 'pinia',
     store: useUserStore()
   },
+  Year: {
+    key: 'userInfo.year',
+    type: 'pinia',
+    store: useUserStore(),
+    onUpdate: (val)=> {
+      return val == 1996
+    }
+  },
   GlobalLogin: {
     key: 'token',
+  },
+  GlobalAge: {
+    key: 'age'
   },
   UserInfo: {
     key: 'userInfo'
   },
   UserInfoA: {
-    key: 'userInfo.a'
+    key: 'userInfo.name',
+    onUpdate: (val) => {
+      return val == 123
+    }
   }
 })
 
 const customMountedLogin = ref(false)
 const customMountedLoginName = ref(false)
+const customMountedYear = ref(false)
+const customMountedGlobalAge = ref(false)
 const customMountedGlobalLogin = ref(false)
 const customMountedGlobalUserInfo = ref(false)
 const customMountedGlobalUserInfoA = ref(false)
@@ -53,17 +71,26 @@ onCustomMounted(() => {
 }, ['GlobalLogin'])
 
 onCustomMounted(() => {
+  customMountedGlobalAge.value = true
+}, ['GlobalAge'])
+
+onCustomMounted(() => {
   customMountedGlobalUserInfo.value = true
 }, ['UserInfo'])
 
 onCustomMounted(() => {
-  console.log("执行了饿UserInfoA");
+  console.log("执行了UserInfoA");
   customMountedGlobalUserInfoA.value = true
 }, ['UserInfoA'])
 
 onCustomMounted(() => {
   customMountedLoginName.value = true
 }, ['Login', 'Name'])
+
+onCustomMounted(() => {
+  customMountedYear.value = true
+}, ['Year'])
+
 
 const changeName = () => {
   useUserStore().setName("newName")
@@ -75,14 +102,21 @@ const setToken = () => {
 
 const setUserInfo = () => {
   set('userInfo', {
-    b: 2
+    b: 2,
+    name: 213
   })
 }
 
 const setUserInfoKey = () => {
   set('userInfo', {
-    a: 2
+    name: 123
   })
+}
+
+const setPiniaYear = () => {
+  console.log("执行setPiniaYear");
+  
+  useUserStore().setYear(1996)
 }
 
 </script>

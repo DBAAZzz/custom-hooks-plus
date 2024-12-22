@@ -47,9 +47,9 @@ function createHookPromise(watchKey: string[] | string, uuid: string, method: st
   // 根据 key 生成 promise iterable
   const iterable = _watchKey.map((i) => {
     const promiseKey = watchConfigs[i].key
-    return promiseMap[promiseKey].status == PromiseStatus.FULFILLED
+    return promiseMap.get(promiseKey)!.status == PromiseStatus.FULFILLED
       ? Promise.resolve
-      : promiseCache[promiseKey]
+      : promiseCache.get(promiseKey)
   })
 
   const promise = Promise.race([Promise.all(iterable), shared[sharedKey].promise])

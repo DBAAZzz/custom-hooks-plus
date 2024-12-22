@@ -8,14 +8,13 @@ declare class CustomHooks {
     private watchConfigs;
     private promiseCache;
     private promiseMap;
+    private proxyTarget;
     private createPendingPromise;
-    updateWatchedValue(key: string, value: any, parentTaget?: object): void;
+    private track;
     createProxy<T extends AnyObject>(target: T): T;
     init(watchObject: WatchConfigCollection): void;
-    getPromiseCache(): {
-        [key: string]: Promise<any>;
-    };
-    getPromiseMap(): PromiseMap;
+    getPromiseCache(): Map<string, Promise<any>>;
+    getPromiseMap(): Map<string, PromiseMapValue>;
     getWatchConfigs(): WatchConfigCollection;
 }
 
@@ -23,7 +22,7 @@ export declare const customHooks: CustomHooks;
 
 declare type DefaultWatchConfig = {
     key: string;
-    type?: 'default';
+    type?: "default";
     onUpdate?: (val: any) => boolean;
 };
 
@@ -49,7 +48,7 @@ export declare const onCustomShow: CustomHook;
 
 declare type PiniaWatchConfig = {
     key: string;
-    type: 'pinia';
+    type: "pinia";
     store: any;
     onUpdate?: (val: any) => boolean;
 };
@@ -57,13 +56,10 @@ declare type PiniaWatchConfig = {
 declare type PromiseEntry = {
     status: PromiseStatus;
     resolve: Function;
-    type?: 'pinia' | 'default';
     onUpdate?: (val: any) => boolean;
 };
 
-declare type PromiseMap = {
-    [key: string]: PromiseEntry;
-};
+declare type PromiseMapValue = PromiseEntry & Partial<WatchConfig>;
 
 declare enum PromiseStatus {
     /** 加载状态 */

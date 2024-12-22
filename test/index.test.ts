@@ -30,6 +30,21 @@ describe('use customHooks', () => {
     }, 0);
   })
 
+
+  it('pinia的year发生变化，执行mounted', async () => {
+    const wrapper = mount(Index)
+    await wrapper.vm.$nextTick()
+      // @ts-ignore
+
+    expect(wrapper.vm.customMountedYear).toBe(false)
+    await wrapper.find('#button5').trigger('click')
+    setTimeout(() => {
+      // @ts-ignore
+      expect(wrapper.vm.customMountedYear).toBe(true)
+    }, 0);
+  })
+
+
   it('pinia的name和token都发生变化，执行mounted', async () => {
     const wrapper = mount(Index)
     await wrapper.vm.$nextTick()
@@ -52,6 +67,16 @@ describe('use customHooks', () => {
     setTimeout(() => {
       // @ts-ignore
       expect(wrapper.vm.customMountedGlobalLogin).toBe(true)
+    }, 0);
+  })
+
+  it('global的age，执行mounted', async () => {
+    const wrapper = mount(Index)
+    await wrapper.vm.$nextTick()
+    // @ts-ignore
+    setTimeout(() => {
+      // @ts-ignore
+      expect(wrapper.vm.customMountedGlobalAge).toBe(true)
     }, 0);
   })
 
