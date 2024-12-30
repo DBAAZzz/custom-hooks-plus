@@ -43,6 +43,10 @@
     "vitest": "^2.1.5",
     "vue": "^3.4.24"
   },
+  "peerDependencies": {
+    "vue": "^3.4.24",
+    "@dcloudio/uni-app": "3.0.0-3081220230817001"
+  },
   "files": [
     "dist"
   ],
