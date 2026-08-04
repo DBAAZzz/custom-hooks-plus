@@ -19,7 +19,8 @@
     }
   },
   "scripts": {
-    "build": "unbuild"
+    "build": "unbuild",
+    "prepack": "node ../../scripts/sync-readme.mjs"
   },
   "dependencies": {
     "@when-hooks/core": "workspace:^"
@@ -38,7 +39,9 @@
     "vue": "^3.4.24"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "README.en.md"
   ],
   "author": "DBAAZzz",
   "license": "ISC",

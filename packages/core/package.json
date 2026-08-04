@@ -19,10 +19,13 @@
     }
   },
   "scripts": {
-    "build": "unbuild"
+    "build": "unbuild",
+    "prepack": "node ../../scripts/sync-readme.mjs"
   },
   "files": [
-    "dist"
+    "dist",
+    "README.md",
+    "README.en.md"
   ],
   "author": "DBAAZzz",
   "license": "ISC",

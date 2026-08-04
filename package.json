@@ -6,7 +6,8 @@
   "license": "ISC",
   "packageManager": "pnpm@10.33.2",
   "scripts": {
-    "build": "pnpm -r run build",
+    "build": "pnpm sync:readme && pnpm -r run build",
+    "sync:readme": "node scripts/sync-readme.mjs",
     "test": "vitest",
     "test:run": "vitest run",
     "typecheck": "pnpm -r exec tsc --noEmit",

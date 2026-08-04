@@ -3,3 +3,7 @@ dist
 temp
 .DS_Store
 .npmrc
+
+# 子包 README 由 scripts/sync-readme.mjs 从根目录生成
+packages/*/README.md
+packages/*/README.en.md
